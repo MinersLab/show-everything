@@ -16,7 +16,6 @@ import net.minecraft.item.Items
 import net.minecraft.network.message.MessageType
 import net.minecraft.network.message.SignedMessage
 import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryWrapper
 import net.minecraft.server.command.CommandManager
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.HoverEvent
@@ -24,7 +23,6 @@ import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
-import java.util.stream.Stream
 
 enum class ShowBlockCommand(val allowFluids: Boolean) : CommandRegistrationCallback {
 
@@ -62,17 +60,13 @@ enum class ShowBlockCommand(val allowFluids: Boolean) : CommandRegistrationCallb
         }
         else block
         if (item.asItem() == Items.AIR) item = Items.BARRIER
-        val itemStack = ItemStack(
-            item,
-            1
-        )
-        if (allowFluids) itemStack.set(CUSTOM_NAME, text(FluidVariantAttributes.getName(FluidVariant.of(blockState.fluidState.fluid))).styled { it.withItalic(false) })
-        else if (blockEntity != null && blockEntity.components.contains(CUSTOM_NAME)) itemStack.set(CUSTOM_NAME, text(blockEntity.components.get(CUSTOM_NAME)).styled { it.withItalic(false) })
-        else itemStack.set(CUSTOM_NAME, block.name.styled { it.withItalic(false) })
-        blockEntity?.setStackNbt(
-            itemStack,
-            RegistryWrapper.WrapperLookup.of(Stream.of(Registries.BLOCK.readOnlyWrapper))
-        )
+        val itemStack = ItemStack(item, 1)
+        if (allowFluids)
+            itemStack.set(CUSTOM_NAME, text(FluidVariantAttributes.getName(FluidVariant.of(blockState.fluidState.fluid))).styled { it.withItalic(false) })
+        else if (blockEntity != null && blockEntity.components.contains(CUSTOM_NAME))
+            itemStack.set(CUSTOM_NAME, text(blockEntity.components.get(CUSTOM_NAME)).styled { it.withItalic(false) })
+        else
+            itemStack.set(CUSTOM_NAME, block.name.styled { it.withItalic(false) })
         val id = if (allowFluids) Registries.FLUID.getId(blockState.fluidState.fluid).toString() else Registries.BLOCK.getId(block).toString()
         val text = Text.empty().apply {
             append(ShowItemCommand.toItemChatText(itemStack))
